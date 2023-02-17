@@ -1,0 +1,2025 @@
+# ------------------------------------------------------
+# ---------------------- Imports -----------------------
+# ------------------------------------------------------
+
+import os
+import subprocess
+import command
+from libqtile import qtile, bar, layout, widget, hook, extension
+from libqtile.config import Click, Drag, Group, Match, Screen, ScratchPad, DropDown, KeyChord
+from libqtile.config import EzKey as Key
+from libqtile.config import Key as Key2
+from libqtile.lazy import lazy
+from libqtile.utils import guess_terminal
+from libqtile.backend.x11.xkeysyms import keysyms as keysym
+from qtile_extras import widget as extra_widget
+from screeninfo import get_monitors
+
+
+
+# ------------------------------------------------------
+# ------------------ Global Variables ------------------
+# ------------------------------------------------------
+
+# screen scaling to current primary screen DPI
+monitors = get_monitors()                       # get DPI values for all the screens
+add_scale = 0.8                                   # additional scaling factor in case someone would like to adjust
+scale_w = monitors[0].width // 1920 * add_scale
+scale_h = monitors[0].height // 1080 * add_scale
+
+mod = "mod4"
+terminal = guess_terminal()
+# terminal = "terminator"
+browser = "firefox"
+main_layout = "monadtall"
+main_layout_alt = "columns"
+
+qtile_path = os.path.dirname(__file__)
+shutdown_menu = os.path.join(os.path.dirname(__file__), "utils/scripts/shutdown.sh")
+logout_prompt = os.path.join(os.path.dirname(__file__), "utils/scripts/logout_prompt.sh")
+poweroff_prompt = os.path.join(os.path.dirname(__file__), "utils/scripts/poweroff_prompt.sh")
+suspend_prompt = os.path.join(os.path.dirname(__file__), "utils/scripts/suspend_prompt.sh")
+bluetooth_prompt = os.path.join(os.path.dirname(__file__), "utils/scripts/dmenu_bluetooth.sh")
+wifi_prompt = os.path.join(os.path.dirname(__file__), "utils/scripts/network_manager_dmenu.py")
+screenshot = os.path.join(os.path.dirname(__file__), "utils/scripts/screenshot.sh")
+rectangular_screenshot = os.path.join(os.path.dirname(__file__), "utils/scripts/rectangular_screenshot.sh")
+brightness_up = os.path.join(os.path.dirname(__file__), "utils/scripts/brightness_up.sh")
+brightness_down = os.path.join(os.path.dirname(__file__), "utils/scripts/brightness_down.sh")
+brightness_dmenu = os.path.join(os.path.dirname(__file__), "utils/scripts/brightness_dmenu.sh")
+volume_up = os.path.join(os.path.dirname(__file__), "utils/scripts/volume_up.sh")
+volume_down = os.path.join(os.path.dirname(__file__), "utils/scripts/volume_down.sh")
+volume_check = os.path.join(os.path.dirname(__file__), "utils/scripts/volume_current.sh")
+volume_mute = os.path.join(os.path.dirname(__file__), "utils/scripts/volume_mute.sh")
+gpu_load = os.path.join(os.path.dirname(__file__), "utils/scripts/gpu_load.sh")
+clipmenu = os.path.join(os.path.dirname(__file__), "utils/scripts/clipmenu.sh")
+autostart = os.path.join(os.path.dirname(__file__), "utils/scripts/autostart.sh")
+checkupdates = os.path.join(os.path.dirname(__file__), "utils/scripts/check_updates.sh")
+debug_file = os.path.join(os.path.expanduser("~"), ".local/share/qtile/qtile.log")
+
+arch_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/arch-icons/arch_light.png")
+layout_icon_dir = os.path.join(os.path.dirname(__file__), "utils/icons/layout-icons/dark")
+window_count_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/window-count-icons/window_count_dark_bold.png")
+updates_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/update-icons/update_dark_bold.png")
+brightness_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/brightness-icons/brightness_light_bold.png")
+volume_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/volume-icons/volume_light_bold.png")
+bluetooth_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/bluetooth-icons/bluetooth_light_bold.png")
+cpu_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/cpu-icons/cpu_dark_bold.png")
+gpu_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/gpu-icons/gpu.png")
+keepass_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/keepass-icons/keepass_white.png")
+dropbox_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/dropbox-icons/dropbox_white.png")
+memory_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/memory-icons/memory_dark_bold.png")
+temperature_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/temperature-icons/terperature_dark_bold.png")
+network_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/network-icons/network_light_bold.png")
+wifi_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/network-icons/wifi_light_bold.png")
+battery_icon_dir = os.path.join(os.path.dirname(__file__), "utils/icons/battery-icons/dark")
+clock_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/clock-icons/clock_light_bold.png")
+poweroff_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/poweroff-icons/poweroff_dark_bold.png")
+logout_icon_path = os.path.join(os.path.dirname(__file__), "utils/icons/logout-icons/logout_dark_bold.png")
+
+# colors = {
+#     "black": ['#2C3E50', '#34495E'],
+#     'purple': ['#8E44AD', '#9B59B6'],
+#     'blue': ['#2980B9', '#3498DB'],
+#     'green': ['#27AE60', '#2ECC71'],
+#     'cyan': ['#16A085', '#1ABC9C'],
+#     'yellow': ['#F39C12', '#F1C40F'],
+#     'orange': ['#D35400', '#E67E22'],
+#     'red': ['#C0392B', '#E74C3C'],
+#     'white': ['#BDC3C7', '#ECF0F1'],
+#     'grey': ['#7F8C8D', '#95A5A6']
+# }
+
+colors = {
+    "black": ['#2C3E50', '#264653'],
+    'purple': ['#8E44AD', '#9B59B6'],
+    'blue': ['#2980B9', '#3498DB'],
+    'green': ['#27AE60', '#2ECC71'],
+    'cyan': ['#16A085', '#1ABC9C'],
+    'yellow': ['#F39C12', '#F1C40F'],
+    'orange': ['#D35400', '#E67E22'],
+    'red': ['#C0392B', '#E74C3C'],
+    'white': ['#BDC3C7', '#ECF0F1'],
+    'grey': ['#2A9D8F', '#56c3b7']
+}
+
+
+
+# ------------------------------------------------------
+# ------------------ Custom Functions ------------------
+# ------------------------------------------------------
+
+def toogle_max(qtile):
+    max_ind = 0
+    main_ind = 2
+    for ind in range(len(layouts)):
+        if layouts[ind].name == "max":
+            max_ind = ind
+        if layouts[ind].name == main_layout:
+            main_ind = ind
+
+    if qtile.current_layout.name == "max":
+        qtile.cmd_to_layout_index(main_ind)
+    else:
+        qtile.cmd_to_layout_index(max_ind)
+
+
+def toogle_tile(qtile):
+    main_ind = 0;
+    main_ind_alt = 0;
+    for ind in range(len(layouts)):
+        if layouts[ind].name == main_layout:
+            main_ind = ind
+        if layouts[ind].name == main_layout_alt:
+            main_ind_alt = ind
+    
+    if qtile.current_layout.name != main_layout:
+        qtile.cmd_to_layout_index(main_ind)
+    else:
+        qtile.cmd_to_layout_index(main_ind_alt)
+
+def word_file(f):
+    with open(f) as file:
+        return file.read().split()[0]
+
+# ------------------------------------------------------
+# -------------------- Key Bindings --------------------
+# ------------------------------------------------------
+
+Key.modifier_keys = {
+   'M': 'mod4',
+   'A': 'mod1',
+   'S': 'shift',
+   'C': 'control',
+}
+
+keys = [
+    # Switch between windows (Move Focus)
+    Key(
+        "M-h",
+        lazy.layout.left(),
+        lazy.layout.down().when(layout='max'),
+        desc="Move focus to left"
+    ),
+    Key(
+        "M-<Left>",
+        lazy.layout.left(),
+        lazy.layout.down().when(layout='max'),
+        desc="Move focus to left"
+    ),
+    Key(
+        "M-l",
+        lazy.layout.right(),
+        lazy.layout.up().when(layout='max'),
+        desc="Move focus to right"
+    ),
+    Key(
+        "M-<Right>",
+        lazy.layout.right(),
+        lazy.layout.up().when(layout='max'),
+        desc="Move focus to right"
+    ),
+    Key(
+        "M-j",
+        lazy.layout.down(),
+        desc="Move focus down"
+    ),
+    Key(
+        "M-<Down>",
+        lazy.layout.down(),
+        desc="Move focus down"
+    ),
+    Key(
+        "M-k", 
+        lazy.layout.up(),
+        desc="Move focus up"
+    ),
+    Key(
+        "M-<Up>",
+        lazy.layout.up(),
+        desc="Move focus up"
+    ),
+    Key(
+        "M-S-<space>",
+        lazy.layout.next(),
+        desc="Move window focus to other window"
+    ),
+
+    # Move windows between left/right columns or move up/down in current stack.
+    Key(
+        "M-S-h",
+        lazy.layout.shuffle_left(),
+        desc="Move window to the left"
+    ),
+    Key(
+        "M-S-<Left>",
+        lazy.layout.shuffle_left(),
+        desc="Move window to the left"
+    ),
+    Key(
+        "M-S-l",
+        lazy.layout.shuffle_right(),
+        desc="Move window to the right"
+    ),
+    Key(
+        "M-S-<Right>",
+        lazy.layout.shuffle_right(),
+        desc="Move window to the right"
+    ),
+    Key(
+        "M-S-j",
+        lazy.layout.shuffle_down(),
+        desc="Move window down"
+    ),
+    Key(
+        "M-S-<Down>",
+        lazy.layout.shuffle_down(),
+        desc="Move window down"
+    ),
+    Key(
+        "M-S-k",
+        lazy.layout.shuffle_up(),
+        desc="Move window up"
+    ),
+    Key(
+        "M-S-<Up>",
+        lazy.layout.shuffle_up(),
+        desc="Move window up"
+    ),
+
+    # Grow windows. If current window is on the edge of screen and direction will be to screen edge - window would shrink.
+    Key(
+        "A-C-h",
+        lazy.layout.grow_left(),
+        lazy.layout.decrease_ratio(),
+        lazy.layout.shrink_main(),
+        desc="Grow window to the left"
+    ),
+    Key(
+        "A-C-<Left>",
+        lazy.layout.grow_left(),
+        lazy.layout.decrease_ratio(),
+        lazy.layout.shrink_main(),
+        desc="Grow window to the left"
+    ),
+    Key(
+        "A-C-l",
+        lazy.layout.grow_right(),
+        lazy.layout.increase_ratio(),
+        lazy.layout.grow_main(),
+        desc="Grow window to the right"
+    ),
+    Key(
+        "A-C-<Right>",
+        lazy.layout.grow_right(),
+        lazy.layout.increase_ratio(),
+        lazy.layout.grow_main(),
+        desc="Grow window to the right"
+    ),
+    Key(
+        "A-C-j",
+        lazy.layout.grow_down(),
+        lazy.layout.increase_ratio(),
+        lazy.layout.shrink(),
+        desc="Grow window down"
+    ),
+    Key(
+        "A-C-<Down>",
+        lazy.layout.grow_down(),
+        lazy.layout.increase_ratio(),
+        lazy.layout.shrink(),
+        desc="Grow window down"
+    ),
+    Key(
+        "A-C-k",
+        lazy.layout.grow_up(),
+        lazy.layout.decrease_ratio(),
+        lazy.layout.grow(),
+        desc="Grow window up"
+    ),
+    Key(
+        "A-C-<Up>",
+        lazy.layout.grow_up(),
+        lazy.layout.decrease_ratio(),
+        lazy.layout.grow(),
+        desc="Grow window up"
+    ),
+    Key(
+        "A-C-<Return>",
+        lazy.layout.normalize(),
+        lazy.layout.reset(),
+        desc="Reset all window sizes"
+    ),
+
+    # Launching Applications
+    Key(
+        "M-<Return>",
+        lazy.spawn(terminal),
+        desc="Launch terminal"
+    ),
+    Key(
+        "M-A-b",
+        lazy.spawn(f"{browser}"),
+        desc="Launch Browser"
+    ),
+    Key(
+        "M-A-v",
+        lazy.spawn("code"),
+        desc="Launch VsCode"
+    ),
+    Key(
+        "M-A-d",
+        lazy.spawn("discord"),
+        desc="Launch Discord"
+    ),
+    Key(
+        "M-A-s",
+        lazy.spawn("spotify"),
+        desc="Launch Spotify"
+    ),
+    Key(
+        "M-S-l",
+        lazy.spawn("i3lock-fancy"),
+        desc="Launch i3lock-fancy"
+    ),
+    Key(
+        "M-A-c",
+        lazy.spawn(clipmenu),
+        desc="Launch clipmenu"
+    ),
+    Key(
+        "M-A-x",
+        lazy.spawn("dmenu_run -h 40 -c -l 10 -p 'Apps:'"),
+        desc="Launch Dmenu"
+    ),
+    Key(
+        "M-S-s",
+        lazy.spawn(shutdown_menu),
+        desc="Launch shutdown menu"
+    ),
+    
+    # Change layouts
+    Key(
+        "A-C-<space>",
+        lazy.next_layout(),
+        desc="Toggle between layouts"
+    ),
+    Key(
+        "M-<space>",
+        lazy.function(toogle_max),
+        desc="Toggle max layout"
+    ),
+    Key(
+        "M-f",
+        lazy.function(toogle_max),
+        desc="Toggle max layout"
+    ),
+    Key(
+        "M-t",
+        lazy.function(toogle_tile),
+        desc="Toggle tiling layout"
+    ),
+
+    # Toggle between recent groups
+    Key(
+        "M-<Tab>",
+        lazy.screen.toggle_group(),
+        desc="Toggle between groups"
+    ),
+    
+    # Kill window
+    Key(
+        "M-q",
+        lazy.window.kill(),
+        desc="Kill focused window"
+    ),
+    Key(
+        "A-q",
+        lazy.window.kill(),
+        desc="Kill focused window"
+    ),
+    
+    # Reload/Shutdown Qtile
+    Key(
+        "M-A-r",
+        lazy.reload_config(),
+        desc="Reload the config"
+    ),
+    Key(
+        "M-A-q",
+        lazy.shutdown(),
+        desc="Shutdown Qtile"
+    ),
+
+    Key(
+        "M-b",
+        lazy.hide_show_bar(),
+        desc="Toogle bar visibility"
+    ),
+    
+    # Spawn cmd launcher
+    Key(
+        "M-r",
+        lazy.spawncmd(),
+        desc="Spawn a command using a prompt widget"
+    ),
+
+    # Scripts that i wrote
+    Key(
+        "<Print>",
+        lazy.spawn(screenshot),
+        desc="Take Fullscreen Screenshot"
+    ),
+    Key(
+        "M-S-p",
+        lazy.spawn(rectangular_screenshot),
+        desc="Take Fullscreen Screenshot"
+    ),
+    Key(
+        "M-S-C-p",
+        lazy.spawn(rectangular_screenshot),
+        desc="Take Fullscreen Screenshot"
+    ),
+    Key(
+        "<XF86MonBrightnessUp>",
+        lazy.spawn(brightness_up),
+        desc="Increase Brightness"
+    ),
+    Key(
+        "<XF86MonBrightnessDown>",
+        lazy.spawn(brightness_down),
+        desc="Decrease Brightness"
+    ),
+    Key(
+        "<XF86AudioRaiseVolume>",
+        lazy.spawn(volume_up),
+        desc="Increase Volume"
+    ),
+    Key(
+        "<XF86AudioLowerVolume>",
+        lazy.spawn(volume_down),
+        desc="Decrease Volume"
+    ),
+    Key(
+        "<XF86AudioMute>",
+        lazy.spawn(volume_mute),
+        desc="Toogle Mute Volume"
+    ),
+
+    # Scratchpad
+    Key(
+        "A-t",
+        lazy.group['scratchpad'].dropdown_toggle('terminal'),
+        desc="Toggle Terminal Scratchpad"
+    ),
+    Key(
+        "A-d",
+        lazy.group['scratchpad'].dropdown_toggle('debug'),
+        desc="Toggle Debug Scratchpad"
+    ),
+    Key(
+        "A-b",
+        lazy.group['scratchpad'].dropdown_toggle('browser'),
+        desc="Toggle Browser Scratchpad"
+    ),
+    Key(
+        "A-m",
+        lazy.group['scratchpad'].dropdown_toggle('music'),
+        desc="Toggle Music Scratchpad"
+    ),
+
+    # Keychords
+    KeyChord(
+        [mod], 'a', 
+        [
+            Key(
+                "t",
+                lazy.spawn(terminal),
+                desc="Launch terminal"
+            ),
+            Key(
+                "b",
+                lazy.spawn(f"{browser}"),
+                desc="Launch Browser"
+            ),
+            Key(
+                "y",
+                lazy.spawn(f"{browser} --new-window 'https://www.youtube.com/'"),
+                desc="Launch Youtube"
+            ),
+            Key(
+                "w",
+                lazy.spawn(f"{browser} --new-window 'https://web.whatsapp.com/'"),
+                desc="Launch WhatsApp"
+            ),
+            Key(
+                "v",
+                lazy.spawn("code"),
+                desc="Launch VsCode"
+            ),
+            Key(
+                "d",
+                lazy.spawn("discord"),
+                desc="Launch Discord"
+            ),
+            Key(
+                "s",
+                lazy.spawn("spotify"),
+                desc="Launch Spotify"
+            ),
+            Key(
+                "e",
+                lazy.spawn(f"code {qtile_path}"),
+                desc="Launch Qtile Config File"
+            ),
+            Key(
+                "l",
+                lazy.spawn("i3lock-fancy"),
+                desc="Launch i3lock-fancy"
+            ),
+            Key(
+                "c",
+                lazy.spawn(clipmenu),
+                desc="Launch clipmenu"
+            ),
+            Key(
+                "x",
+                lazy.spawn("dmenu_run -h 40 -c -l 10 -p 'Apps:'"),
+                desc="Launch Dmenu"
+            ),
+            Key(
+                "s",
+                lazy.spawn(shutdown_menu),
+                desc="Launch shutdown menu"
+            ),
+        ],
+        mode="Launch",
+    ),
+
+    KeyChord(
+        [mod], 's', 
+        [
+            Key(
+                "<KP_Up>",
+                lazy.spawn(volume_up),
+                desc="Increase Volume"
+            ),
+            Key(
+                "<KP_Down>",
+                lazy.spawn(volume_down),
+                desc="Decrease Volume"
+            ),
+            Key(
+                "<KP_Begin>",
+                lazy.spawn(volume_mute),
+                desc="Toggle Mute"
+            ),
+            Key(
+                "<KP_Left>",
+                lazy.spawn(brightness_down),
+                desc="Decrease Brightness"
+            ),
+            Key(
+                "<KP_Right>",
+                lazy.spawn(brightness_up),
+                desc="Increase Brightness"
+            ),
+        ],
+        mode="System",
+    ),   
+]
+
+
+
+# ------------------------------------------------------
+# ----------------------- Groups -----------------------
+# ------------------------------------------------------
+
+scratchpads = ScratchPad(
+    name="scratchpad",                  # Name of the group
+    dropdowns=[                         # List of DropDowns
+        DropDown(
+            name="terminal",            # Name of dropdown
+            cmd="alacritty",            # Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="debug",              # Name of dropdown
+            cmd=f"alacritty -e 'tail' -f {debug_file}", # Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="browser",             # Name of dropdown
+            cmd="firefox -P 'ScratchPad'", # Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="music",               # Name of dropdown
+            cmd="alacritty -e 'cmus'",  # Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="bpytop",              # Name of dropdown
+            cmd="alacritty -e 'bpytop'",# Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="khal",              # Name of dropdown
+            cmd="alacritty -e khal interactive",# Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=False,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="radeontop",              # Name of dropdown
+            cmd="alacritty -e 'radeontop'",# Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="pacupdate",           # Name of dropdown
+            cmd="alacritty -e 'sudo' 'pacman' '-Syu'",# Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="aurupdate",           # Name of dropdown
+            cmd="alacritty -e 'yaourt' '-Syu'",# Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+
+        DropDown(
+            name="battery",             # Name of dropdown
+            cmd='alacritty -e zsh -c "upower -i /org/freedesktop/UPower/devices/battery_BAT1 && read"',# Command to launch
+            height=0.5,                 # Height of window as fraction of current screen.
+            match=None,                 # Use a config.Match to identify the spawned window and move it to the scratchpad, instead of relying on the window's PID. This works around some programs that may not be caught by the window's PID if it does not match the PID of the spawned process.
+            on_focus_lost_hide=True,    # Shall the window be hidden if focus is lost? If so, the DropDown is hidden if window focus or the group is changed.
+            opacity=1,                  # Opacity of window as fraction. Zero is opaque.
+            warp_pointer=True,          # Shall pointer warp to center of window on activation? This has only effect if any of the on_focus_lost_xxx configurations is True
+            width=0.995,                # Width of window as fraction of current screen width
+            x=0.0,                      # X position of window as fraction of current screen width. 0 is the left most position.
+            y=0.0,                      # Y position of window as fraction of current screen height. 0 is the top most position. To show the window at bottom, you have to configure a value < 1 and an appropriate height.
+        ),
+    ],
+    position=9223372036854775807,       # Position of the scratchpad. Negative values are interpreted as fractions of the screen height. 0 is the top most position.
+    label="",                           # The display name of the ScratchPad group. Defaults to the empty string such that the group is hidden in GroupList widget
+    single=False,                       # Only one of the window among the specified dropdowns will be visible at a time.
+)
+
+groups = [
+    scratchpads,
+    Group("1", label=""),# matches=[Match(wm_class=["Code"])]),
+    Group("2", label=""),# matches=[Match(wm_class=["firefox"])]),
+    Group("3", label=""),# matches=[Match(wm_class=["alacritty"])]),
+    Group("4", label=""),# matches=[Match(wm_class=[""])]),
+    Group("5", label=""),# matches=[Match(wm_class=["org.gnome.Nautilus"])]),
+    Group("6", label=""),# matches=[Match(wm_class=[""])]),
+    Group("7", label=""),# matches=[Match(wm_class=[""])]),
+    Group("8", label=""),# matches=[Match(wm_class=[""])]),
+    Group("9", label=""),# matches=[Match(wm_class=[""])]),
+    Group("10", label=""),# matches=[Match(wm_class=[""])]),
+]
+
+# allow mod4+1 through mod4+0 to bind to groups;
+# MOD4 + [index(1-0)] : Switch to Group [index(1-0)]
+# MOD4 + Shift + [index(1-0)] : Move focused window to Group [index(1-0)]
+# from libqtile.dgroups import simple_key_binder
+# dgroups_key_binder = simple_key_binder("mod3")
+
+for i in range(1, len(groups)):
+    ind = i
+    if ind == 10:
+        ind = 0
+
+    keys.extend(
+        [
+            # mod4 + index of group = switch to group
+            Key(
+                "M-" + str(ind), 
+                lazy.group[groups[i].name].toscreen(), 
+                desc="Switch to group {}".format(groups[i].name),
+            ),
+
+            # mod4 + shift + index of group = move focused window to group
+            Key(
+                "M-S-" + str(ind),
+                lazy.window.togroup(groups[i].name),
+                desc="move focused window to group {}".format(groups[i].name)
+            ),
+
+            # mod1 + alt + shift + index of group = go and move focused window to group
+            Key(
+                "M-S-A-" + str(ind), 
+                lazy.window.togroup(groups[i].name, switch_group=True),
+                desc="Switch to & move focused window to group {}".format(groups[i].name),
+            ),
+        ]
+    )
+
+
+
+# ------------------------------------------------------
+# ---------------------- Layouts -----------------------
+# ------------------------------------------------------
+
+layouts = [
+    layout.Stack(
+        autosplit=False,                # Auto split all new stacks.
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1], # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        fair=False,                     # Add new windows to the stacks in a round robin way.
+        margin=0,                       # Margin of the layout (int or list of ints [N E S W]).
+        num_stacks=2,                   # Number of stacks.
+    ),
+
+    layout.MonadTall(
+        align=0,                        # Which side master plane will be placed (one of MonadTall._left or MonadTall._right).
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors["black"][1], # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        change_ratio=0.02,              # Resize ratio.
+        change_size=20,                 # Resize change in pixels.
+        margin=15,                      # Margin of the layout.
+        max_ratio=0.9,                  # The percent of the screen-space the master pane should occupy at maximum.
+        min_ratio=0.1,                  # The percent of the screen-space the master pane should occupy at minimum.
+        min_secondary_size=50,          # Minimum size in pixel for a secondary pane window.
+        new_client_position='after',    # Place new windows: after_current - after the active window. before_current - before the active window, top - at the top of the stack, bottom - at the bottom of the stack.
+        ratio=0.5,                      # The percent of the screen-space the master pane should occupy by default.
+        single_border_width=None,       # Border width for single window.
+        single_margin=None,             # Margin size for single window.
+    ),
+
+    layout.Columns(
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_focus_stack=colors['grey'][1], # Border colour(s) for the focused window in stacked columns.
+        border_normal=colors['black'][1], # Border colour(s) for un-focused windows.
+        border_normal_stack=colors['black'][1], # Border colour(s) for un-focused windows in stacked columns.
+        border_on_single=True,          # Draw a border when there is one only window.
+        border_width=4,                 # Border width.
+        fair=False,                     # Add new windows to the column with least windows.
+        grow_amount=10,                 # Amount by which to grow a window/column.
+        insert_position=0,              # Position relative to the current window where new ones are inserted (0 means right above the current window, 1 means right after).
+        margin=10,                      # Margin of the layout (int or list of ints [N E S W]).
+        margin_on_single=10,            # Margin when only one window. (int or list of ints [N E S W]).
+        num_columns=2,                  # Preferred number of columns.
+        split=True,                     # New columns presentation mode.
+        wrap_focus_columns=False,       # Wrap the screen when moving focus across columns.
+        wrap_focus_rows=False,          # Wrap the screen when moving focus across rows.
+        wrap_focus_stacks=False         # Wrap the screen when moving focus across stacked.
+    ),
+
+    layout.Max(),
+
+    layout.Tile(
+        add_after_last=False,           # Add new clients after all the others. If this is True, it overrides add_on_top.
+        add_on_top=True,                # Add new clients before all the others, potentially pushing other windows into slave stack.
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1], # Border colour(s) for the unfocused window.
+        border_on_single=True,          # Whether to draw border if there is only one window.
+        border_width=4,                 # Border width.
+        expand=True,                    # Expand the master windows to the full screen width if no slaves are present.
+        margin=[15,15,15,15],           # Margin of the layout (int or list of ints [N E S W])
+        margin_on_single=True,          # Whether to draw margin if there is only one window.
+        master_length=1,                # Amount of windows displayed in the master stack. Surplus windows will be moved to the slave stack.
+        master_match=None,              # A Match object defining which window(s) should be kept masters (single or a list of Match-objects).
+        max_ratio=0.85,                 # Maximum width of master windows.
+        mn_ratio=0.15,                  # Minimum width of master windows.
+        ratio=0.5,                      # Width-percentage of screen size reserved for master windows.
+        ratio_increment=0.01,           # By which amount to change ratio when cmd_decrease_ratio or cmd_increase_ratio are called.
+        shift_windows=True              # Allow to shift windows within the layout. If False, the layout will be rotated instead.
+    ),
+
+    layout.Bsp(
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1], # Border colour(s) for un-focused windows.
+        border_on_single=False,         # Draw border when there is only one window.
+        border_width=4,                 # Border width.
+        fair=True,                      # New clients are inserted in the shortest branch.
+        grow_amount=10,                 # Amount by which to grow a window/column.
+        lower_right=True,               # New client occupies lower or right subspace.
+        margin=0,                       # Margin of the layout (int or list of ints [N E S W]).
+        margin_on_single=None,          # Margin when there is only one window (int or list of ints [N E S W], 'None' to use 'margin' value).
+        ratio=1.6,                      # Width/height ratio that defines the partition direction.
+    ),
+
+    layout.Matrix(
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1],        # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        columns=2,                      # Number of columns.
+        margin=0,                       # Margin of the layout (int or list of ints [N E S W]).
+    ),
+
+    layout.MonadWide(
+        align=0,                        # Which side master plane will be placed (one of MonadTall._left or MonadTall._right).
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1],        # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        change_ratio=0.05,              # Resize ratio.
+        change_size=20,                 # Resize change in pixels.
+        margin=0,                       # Margin of the layout.
+        max_ratio=0.75,                 # The percent of the screen-space the master pane should occupy at maximum.
+        min_ratio=0.25,                 # The percent of the screen-space the master pane should occupy at minimum.
+        min_secondary_size=85,          # Minimum size in pixel for a secondary pane window.
+        new_client_position='after_current', # Place new windows: after_current - after the active window. before_current - before the active window, top - at the top of the stack, bottom - at the bottom of the stack.
+        ratio=0.5,                      # The percent of the screen-space the master pane should occupy by default.
+        single_border_width=None,       # Border width for single window.
+        single_margin=None,             # Margin size for single window.
+    ),
+
+    layout.RatioTile(
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1],        # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        fancy=False,                    # Use a different method to calculate window sizes.
+        margin=0,                       # Margin of the layout (int or list of ints [N E S W]).
+        ratio=1.618,                    # Ratio of the tiles.
+        ratio_increment=0.1             # Amount to increment per ratio increment.
+    ),
+
+    layout.TreeTab(
+        active_bg='000080',             # Background color of active tab.
+        active_fg='ffffff',             # Foreground color of active tab.
+        bg_color='000000',              # Background color of tabs.Key
+        border_width=4,                 # Width of the border.
+        font='sans',                    # Font.
+        fontshadow=None,                # font shadow color, default is None (no shadow).
+        fontsize=14,                    # Font pixel size.
+        inactive_bg='606060',           # Background color of inactive tab.
+        inactive_fg='ffffff',           # Foreground color of inactive tab.
+        level_shift=8,                  # Shift for children tabs.
+        margin_left=0,                  # Left margin of tab panel.
+        margin_y=0,                     # Vertical margin of tab panel.
+        padding_left=6,                 # Left padding for tabs.
+        padding_x=6,                    # Left padding for tab label.
+        padding_y=2,                    # Top padding for tab label.
+        panel_width=150,                # Width of the left panel.
+        place_right=False,              # Place the tab panel on the right side.
+        previous_on_rm=True,            # Focus previous window on close instead of first.
+        section_bottom=6,               # Bottom margin of section.
+        section_fg='ffffff',            # Color of section label.
+        section_fontsize=11,            # Font pixel size of section label.
+        section_left=4,                 # Left margin of section label.
+        section_padding=4,              # Bottom of margin section label.
+        section_top=4,                  # Top margin of section label.
+        sections=['Default'],           # Foreground color of inactive tab.
+        urgent_bg='ff0000',             # Background color of urgent tab.
+        urgent_fg='ffffff',             # Foreground color of urgent tab.
+        vspace=2,                       # Space between tabs.
+    ),
+
+    layout.VerticalTile(
+        border_focus=colors["grey"][1], # Border color(s) for the focused window.
+        border_normal=colors['black'][1], # Border color(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        margin=0,                       # Border margin (int or list of ints [N E S W]).
+    ),
+
+    layout.Zoomy(
+        columnwidth=150,                # Width of the right column.
+        margin=0,                       # Margin of the layout (int or list of ints [N E S W]).
+        property_big='1.0',             # Property value to set on normal window (X11 only).
+        property_name='ZOOM',           # Property to set on zoomed window (X11 only).
+        property_small='0.1',           # Property value to set on zoomed window (X11 only).
+    ),
+
+    layout.Floating(
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1],        # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        fullscreen_border_width=0,      # Border width for fullscreen.
+        max_border_width=0,             # Border width for maximize.
+    ),
+
+    layout.MonadThreeCol(
+        align=0,                        # Which side master plane will be placed (one of MonadTall._left or MonadTall._right).
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1],        # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        change_ratio=0.05,              # Resize ratio.
+        change_size=20,                 # Resize change in pixels.
+        main_centered=True,             # Place the main pane at the center of the screen.
+        margin=0,                       # Margin of the layout.
+        max_ratio=0.75,                 # The percent of the screen-space the master pane should occupy at maximum.
+        min_ratio=0.25,                 # The percent of the screen-space the master pane should occupy at minimum.
+        min_secondary_size=85,          # Minimum size in pixel for a secondary pane window.
+        new_client_position='top',      # Place new windows: after_current - after the active window. before_current - before the active window, top - at the top of the stack, bottom - at the bottom of the stack.
+        ratio=0.5,                      # The percent of the screen-space the master pane should occupy by default.
+        single_border_width=None,       # Border width for single window.
+        single_margin=None,             # Margin size for single window.
+    ),
+
+    layout.Slice(
+        match=None,                     # Match-object describing which window(s) to move to the slice.
+        side='left',                    # Position of the slice (left, right, top, bottom).
+        width=256,                      # Slice width.
+    ),
+
+    layout.Spiral(
+        border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+        border_normal=colors['black'][1],        # Border colour(s) for un-focused windows.
+        border_width=4,                 # Border width.
+        clockwise=True,                 # Direction of spiral
+        main_pane='left',               # Location of biggest window 'top', 'bottom', 'left', 'right'
+        main_pane_ratio=None,           # Ratio for biggest window or 'None' to use same ratio for all windows.
+        margin=0,                       # Margin of the layout (int or list of ints [N E S W])
+        new_client_position='top',      # Place new windows: 'after_current' - after the active window, 'before_current' - before the active window, 'top' - in the main pane, 'bottom '- at the bottom of the stack. NB windows that are added too low in the stack may be hidden if there is no remaining space in the spiral.
+        ratio=0.6180469715698392,       # Ratio of the tiles
+        ratio_increment=0.1,            # Amount to increment per ratio increment
+    ),
+]
+
+
+
+# ------------------------------------------------------
+# ---------------------- Top Bar -----------------------
+# ------------------------------------------------------
+
+widget_list = [
+
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['black'][1],  # Widget background color
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn("dmenu_run -h 40 -c -l 10 -p 'Apps:'"),
+            "Button3": lazy.spawn(f'{browser} --new-window "https://cp-algorithms.web.app/"'),
+        },
+    ),
+
+    widget.Image(
+        background=colors['black'][1],  # Widget background color
+        filename=arch_icon_path,        # Image filename. Can contain '~'
+        margin=int(3*scale_h),                       # Margin inside the box
+        margin_x=0,                     # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            # "Button1": lazy.spawn(f'{browser} --new-window "https://wiki.archlinux.org/" '),
+            "Button1": lazy.spawn("dmenu_run -h 40 -c -l 10 -p 'Apps:'"),
+            "Button3": lazy.spawn("dmenu_run -h 40 -c -l 10 -p 'Apps:'"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['black'][1],  # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors['grey'][1],   # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['black'][1],  # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    widget.CurrentLayoutIcon(
+        background=colors["grey"][1],   # Widget background color
+        custom_icon_paths=[layout_icon_dir], # List of folders where to search icons beforeusing built-in icons or icons in ~/.icons dir. This can also be used to providemissing icons for custom layouts. Defaults to empty list.
+        fmt='{}',                       # How to format the text
+        font='JetBrainsMono Nerd Font', # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(14*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=8,                      # Padding. Calculated if None.
+        scale=0.75,                     # Scale factor relative to the bar height. Defaults to 1
+    ),
+
+    # widget.CurrentLayout(
+    #     background=colors["grey"][1],   # Widget background color
+    #     fmt='{}',                       # How to format the text
+    #     font='JetBransMono Nerd Font',  # Default font
+    #     fontshadow=None,                # font shadow color, default is None(no shadow)
+    #     fontsize=16,                    # Font size. Calculated if None.
+    #     foreground='#000000',           # Foreground colour
+    #     markup=True,                    # Whether or not to use pango markup
+    #     max_chars=0,                    # Maximum number of characters to display in widget.
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=3,                      # Padding. Calculated if None.
+    # ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors['black'][1],  # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['grey'][1],   # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    widget.GroupBox(
+        active='ffffff',                # Active group font colour.
+        background=colors["black"][1],  # Widget background color
+        block_highlight_text_color=None,# Selected group font colour.
+        borderwidth=int(3*scale_w),                  # Current group border width.
+        center_aligned=True,            # center-aligned group box.
+        disable_drag=True,              # Disable dragging and dropping of group names on widget.
+        fmt='{}',                       # How to format the text.
+        font='JetBrainsMono Nerd Font', # Text font.
+        fontshadow=None,                # font shadow color, default is None(no shadow).
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#ffffff',           # Foreground color.
+        hide_unused=True,               # Hide groups that have no windows and that are not displayed on any screen.
+        highlight_color=[colors["black"][1], colors["black"][1]], # Active group highlight color when using 'line' highlight method.
+        highlight_method="line",        # Method of highlighting ('border', 'block', 'text', or 'line') Uses *_border color settings.
+        inactive='#ffffff',             # Inactive group font colour
+        invert_mouse_wheel=False,       # Whether to invert mouse wheel group movement
+        margin=int(3*scale_h),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        other_current_screen_border='#ffffff', # Border or line colour for group on other screen when focused.
+        other_screen_border='#ffffff',  # Border or line colour for group on other screen when unfocused.
+        padding=3,                      # Padding. Calculated if None.
+        padding_x=None,                 # X Padding. Overrides 'padding' if set.
+        padding_y=None,                 # Y Padding. Overrides 'padding' if set.
+        rounded=True,                   # To round or not to round box borders
+        spacing=int(5*scale_w),                      # Spacing between groups(if set to None, will be equal to margin_x)
+        this_current_screen_border=colors["green"][1], # Border or line colour for group on this screen when focused.
+        this_screen_border='#215578',   # Border or line colour for group on this screen when unfocused.
+        urgent_alert_method='border',   # Method for alerting you of WM urgent hints (one of 'border', 'text', 'block', or 'line')
+        urgent_border='#FF0000',        # Urgent border or line color
+        urgent_text='#FF0000',          # Urgent group font color
+        use_mouse_wheel=True,           # Whether to use mouse wheel events
+        visible_groups=None,            # Groups that will be visible. If set to None or [], all groups will be visible.Visible groups are identified by name not by their displayed label.
+    ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        # background=colors["grey"][1],   # Widget background color.
+        background=None,                # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['black'][1],  # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    # widget.WindowName(
+    #     # background=colors["grey"][0],   # Widget background color
+    #     background=None,                # Widget background color
+    #     empty_group_string=' ',         # string to display when no windows are focused on current group
+    #     fmt='{}',                       # How to format the text
+    #     font='JetBrainsMono Nerd Font', # Text font.
+    #     fontshadow=None,                # font shadow color, default is None(no shadow)
+    #     fontsize=16,                    # Font size. Calculated if None.
+    #     for_current_screen=False,       # instead of this bars screen use currently active screen
+    #     foreground='#ffffff',           # Foreground colour
+    #     format='{state}{name}',         # format of the text
+    #     markup=True,                    # Whether or not to use pango markup
+    #     max_chars=30,                   # Maximum number of characters to display in widget.
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=20,                     # Padding. Calculated if None.
+    #     parse_text=None,                # Function to parse and modify window names. e.g. function in config that removes excess strings from window name: def my_func(text) for string in [" - Chromium", " - Firefox"]: text = text.replace(string, "") return textthen set option parse_text=my_func
+    # ),
+    
+    widget.Spacer(),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        # background=colors['black'][1],  # Widget background color.
+        background=None,                # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['grey'][1],   # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    widget.Spacer(
+        length=int(3*scale_w),                       # Length of the spacer
+        background=colors['grey'][1],   # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.Chord(
+        background=colors['grey'][1],   # Widget background color
+        chords_colors={                 # colors per chord in form of tuple {'chord_name': ('bg', 'fg')}. Where a chord name is not in the dictionary, the default background and foreground values will be used.
+            'Launch': (colors['grey'][1], "#ff0000"), 
+            'System': (colors['grey'][1], "#0000ff"), 
+        },
+        fmt='{} ',                   # To format the string returned by the widget. For example, if the clock widget returns '08:46' we can do fmt='time {}' do print 'time 08:46' on the widget. To format the individual strings like hour and minutes use the format paramater of the widget (if it has one)
+        font='JetBrainsMono Nerd Font', # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Accepts functions and lazy calls.
+        name_transform=lambda str: f"🚀 {str}" if str == "Launch" else (f"⚙ {str}" if str == "System" else str), # preprocessor for chord name it is pure function string -> string
+        padding=3,                      # Padding. Calculated if None.
+        scroll=False,                   # Whether text should be scrolled. When True, you must set the widget's width.
+        scroll_clear=False,             # Whether text should scroll completely away (True) or stop when the end of the text is shown (False)
+        scroll_delay=2,                 # Number of seconds to pause before starting scrolling and restarting/clearing text at end
+        scroll_hide=False,              # Whether the widget should hide when scrolling has finished
+        scroll_interval=0.1,            # Time in seconds before next scrolling step
+        scroll_repeat=True,             # Whether text should restart scrolling once the text has ended
+        scroll_step=1,                  # Number of pixels to scroll with each step
+    ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=window_count_icon_path,# Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.function(toogle_max),
+            "Button3": lazy.function(toogle_tile),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.WindowCount(
+        background=colors["grey"][1],   # Widget background color
+        fmt='{} ',                       # How to format the text
+        font='JetBrainsMono Nerd Font', # Text font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font pixel size. Calculated if None.
+        foreground='#000000',           # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.function(toogle_max),
+            "Button3": lazy.function(toogle_tile),
+        },
+        padding=3,                      # Padding left and right. Calculated if None.
+        show_zero=True,                 # Show window count when no windows
+        text_format='{num}',            # Format for message
+    ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=updates_icon_path,     # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('pacupdate'),
+            "Button3": lazy.group['scratchpad'].dropdown_toggle('aurupdate'),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+    
+    widget.GenPollText(
+        background=colors["grey"][1],   # Widget background color
+        fmt='{}',                       # How to format the text
+        font='JetBrainsMono Nerd Font', # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        func=lambda: subprocess.check_output(checkupdates).decode('utf-8'), # Poll Function
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('pacupdate'),
+            "Button3": lazy.group['scratchpad'].dropdown_toggle('aurupdate'),
+        },
+        padding=3,                      # Padding. Calculated if None.
+        update_interval=60,             # Update interval in seconds, if none, the widget updates whenever it's done.
+    ),
+    
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['grey'][1],   # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors["grey"][1],   # Widget background color.
+        # background=None,                # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['black'][1],  # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['black'][1],  # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.Image(
+        background=colors['black'][1],  # Widget background color
+        filename=keepass_icon_path,  # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(brightness_dmenu),
+            "Button3": lazy.spawn(brightness_dmenu),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Image(
+        background=colors['black'][1],  # Widget background color
+        filename=dropbox_icon_path,  # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(brightness_dmenu),
+            "Button3": lazy.spawn(brightness_dmenu),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+#    widget.Image(
+#        background=colors['black'][1],  # Widget background color
+#        filename=brightness_icon_path,  # Image filename. Can contain '~'
+#        margin=3,                       # Margin inside the box
+#        margin_x=None,                  # X Margin. Overrides 'margin' if set
+#        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+#        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+#            "Button1": lazy.spawn(brightness_dmenu),
+#            "Button3": lazy.spawn(brightness_dmenu),
+#        },
+#        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+#        scale=True,                     # Enable/Disable image scaling
+#    ),
+#
+#    widget.Backlight(
+#        background=colors['black'][1],  # Widget background color
+#        backlight_name='intel_backlight', # ACPI name of a backlight device
+#        brightness_file='brightness',   # Name of file with the current brightness in /sys/class/backlight/backlight_name
+#        change_command='xbacklight -set {0}', # Execute command to change value
+#        fmt='{}  ',                     # How to format the text
+#        font='JetBrainsMono Nerd Font', # Default font
+#        fontshadow=None,                # font shadow color, default is None(no shadow)
+#        fontsize=16,                    # Font size. Calculated if None.
+#        foreground='#ffffff',           # Foreground colour
+#        format='{percent:2.0%}',        # Display format
+#        markup=True,                    # Whether or not to use pango markup
+#        max_brightness_file='max_brightness', # Name of file with the maximum brightness in /sys/class/backlight/backlight_name
+#        max_chars=0,                    # Maximum number of characters to display in widget.
+#        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+#            "Button1": lazy.spawn(brightness_dmenu),
+#            "Button3": lazy.spawn(brightness_dmenu),
+#        },
+#        padding=3,                      # Padding. Calculated if None.
+#        step=10,                        # Percent of backlight every scroll changed
+#        update_interval=0.1,            # The delay in seconds between updates
+#    ),
+
+    widget.Image(
+        background=colors['black'][1],  # Widget background color
+        filename=volume_icon_path,      # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(volume_mute),
+            "Button3": lazy.spawn(volume_mute),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.PulseVolume(
+        background=colors["black"][1],  # Widget background color
+        cardid=None,                    # Card Id
+        channel='Master',               # Channel
+        device='default',               # Device Name
+        emoji=False,                    # Use emoji to display volume states, only if theme_path is not set.The specified font needs to contain the correct unicode characters.
+        fmt='{}',                       # How to format the text
+        font='JetBrainsMono Nerd Font', # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#ffffff',           # Foreground colour
+        check_mute_string='Mute',
+        check_mute_command=volume_check,
+        get_volume_command=volume_check,# Command to get the current volume
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(volume_mute),
+            "Button3": lazy.spawn(volume_mute),
+        },
+        mute_command=None,              # Mute command
+        padding=3,                      # Padding left and right. Calculated if None.
+        step=1,                         # Volume change for up an down commands in percentage.Only used if volume_up_command and volume_down_command are not set.
+        theme_path=None,                # Path of the icons
+        update_interval=0.1,            # Update time in seconds.
+        volume_app=None,                # App to control volume
+        volume_down_command=None,       # Volume down command
+        volume_up_command=None,         # Volume up command
+        width=int(35*scale_w)
+    ),
+
+    widget.Image(
+        background=colors['black'][1],  # Widget background color
+        filename=bluetooth_icon_path,   # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(bluetooth_prompt),
+            "Button3": lazy.spawn("blueberry"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Bluetooth(
+        background=colors['black'][1],  # Widget background color
+        fmt='{} ',                      # How to format the text
+        font='cascadia code',           # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='ffffff',            # Foreground colour
+        hci='/dev_2C_BE_EB_02_C2_9A',   # hci0 device path, can be found with d-feet or similar dbus explorer.
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=5,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(bluetooth_prompt),
+            "Button3": lazy.spawn("blueberry"),
+        },
+        padding=3,                      # Padding. Calculated if None.
+    ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors['black'][1],  # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['grey'][1],   # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+    
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['grey'][1],   # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=cpu_icon_path,         # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('bpytop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'bpytop'"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.CPU(
+        background=colors['grey'][1],   # Widget background color
+        fmt='{}  ',                     # How to format the text
+        font='cascadia code',           # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        format='{load_percent}%',       # CPU display format
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('bpytop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'bpytop'"),
+        },
+        padding=3,                      # Padding. Calculated if None.
+        update_interval=1,              # Update interval for the CPU widget
+        width=int(50*scale_w)
+    ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=temperature_icon_path, # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=0,                     # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('bpytop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'bpytop'"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.ThermalSensor(
+        background=colors['grey'][1],   # Widget background color
+        fmt='{}',                       # How to format the text
+        font='cascadia code',           # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        foreground_alert='#ff0000',     # Foreground colour alert
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        metric=True,                    # True to use metric/C, False to use imperial/F
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('bpytop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'bpytop'"),
+        },
+        padding=None,                   # Padding. Calculated if None.
+        show_tag=False,                 # Show tag sensor
+        tag_sensor="Tctl",              # Tag of the temperature sensor. For example: "temp1" or "Core 0"
+        threshold=70,                   # If the current temperature value is above, then change to foreground_alert colour
+        update_interval=1,              # Update interval in seconds
+    ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=memory_icon_path,      # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=0,                     # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('bpytop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'bpytop'"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Memory(
+        background=colors['grey'][1],   # Widget background color
+        fmt='{}',                       # How to format the text
+        font='cascadia code',           # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        format='{MemUsed:.0f}{mm}', #/{MemTotal:.0f}{mm}', # Formatting for field names.
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        measure_mem='M',                # Measurement for Memory (G, M, K, B)
+        measure_swap='M',               # Measurement for Swap (G, M, K, B)
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('bpytop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'bpytop'"),
+        },
+        padding=None,                   # Padding. Calculated if None.
+        update_interval=1.0,            # Update interval for the Memory
+    ),
+
+    # widget.CapsNumLockIndicator(
+    #     background=colors["grey"][1],   # Widget background color
+    #     fmt=' {}',                     # How to format the text
+    #     font='JetBrainsMono Nerd Font', # Default font
+    #     fontshadow=None,                # font shadow color, default is None(no shadow)
+    #     fontsize=16,                    # Font size. Calculated if None.
+    #     foreground='#000000',           # Foreground colour
+    #     markup=True,                    # Whether or not to use pango markup
+    #     max_chars=0,                    # Maximum number of characters to display in widget.
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=None,                   # Padding. Calculated if None.
+    #     update_interval=0.1,            # Update Time in seconds.
+    # ),
+
+    # widget.TextBox(
+    #     text="",                       # Text to be displayed.
+    #     # width=None,                     # Width of the textbox.
+    #     background=colors['cyan'][1],   # Widget background color.
+    #     fmt='{}',                       # How to format the text.
+    #     font='meslolgs',                # Text font.
+    #     fontshadow=None,                # Font shadow color, default is None(no shadow).
+    #     fontsize=24,                    # Font pixel size. Calculated if None.
+    #     foreground=colors['green'][1],  # Foreground colour.
+    #     markup=True,                    # Whether or not to use pango markup.
+    #     max_chars=0,                    # Maximum number of characters to display in widget.
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=0,                      # Padding left and right. Calculated if None.
+    # ),
+
+    # widget.Systray(
+    #     background=colors['green'][1],  # Widget background color
+    #     icon_size=20,                   # Icon width
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=5,                      # Padding between icons
+    # ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors['grey'][1],   # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['black'][1],  # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['black'][1],  # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.Image(
+        background=colors['black'][1],  # Widget background color
+        filename=network_icon_path,     # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(wifi_prompt),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Net(
+        background=colors['black'][1],  # Widget background color
+        fmt='{}',                       # How to format the text
+        font='cascadia code',           # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='ffffff',            # Foreground colour
+        format='{down}/s ↓ {up}/s ↑',   # Display format of down/upload/total speed of given interfaces
+        interface="wlp11s0", #commands.getoutput('ip a | grep "state UP" | cut -d: -f2 | tr -d " "'),             # List of interfaces or single NIC as string to monitor, None to display all active NICs combined
+        markup=False,                   # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(wifi_prompt),
+        },
+        padding=None,                   # Padding. Calculated if None.
+        prefix=None,                    # Use a specific prefix for the unit of the speed.
+        update_interval=1,              # The update interval.
+        use_bits=False,                 # Use bits instead of bytes per second?
+        width=int(200*scale_w)
+    ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors['black'][1],  # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['grey'][1],   # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['grey'][1],   # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=gpu_icon_path,         # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('radeontop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'radeontop'"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.GenPollText(
+        background=colors['grey'][1],   # Widget background color
+        fmt='{}  ',                     # How to format the text
+        func=lambda: subprocess.check_output(gpu_load).decode("utf-8"), # GPU load
+        font='cascadia code',           # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('radeontop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'radeontop'"),
+        },
+        padding=3,                      # Padding. Calculated if None.
+        update_interval=1,              # Update interval for the GPU widget
+        width=int(45*scale_w),
+    ),
+
+ #   widget.Battery(
+ #       background=colors['grey'][1],   # Widget background color
+ #       battery=1,                      # Which battery should be monitored (battery number or name)
+ #       charge_char='^',                # Character to indicate the battery is charging
+ #       discharge_char='V',             # Character to indicate the battery is discharging
+ #       empty_char='x',                 # Character to indicate the battery is empty
+ #       fmt='{} ',                      # How to format the text
+ #       font='JetBrainsMono Nerd Font', # Default font
+ #       fontshadow=None,                # font shadow color, default is None(no shadow)
+ #       fontsize=16,                    # Font size. Calculated if None.
+ #       foreground='000000',            # Foreground colour
+ #       format='{percent:2.0%} {hour:d}:{min:02d}', # Display format
+ #       full_char='=',                  # Character to indicate the battery is full
+ #       hide_threshold=None,            # Hide the text when there is enough energy 0 <= x < 1
+ #       low_background=None,            # Background color on low battery
+ #       low_foreground='FF0000',        # Font color on low battery
+ #       low_percentage=0.1,             # Indicates when to use the low_foreground color 0 < x < 1
+ #       markup=True,                    # Whether or not to use pango markup
+ #       max_chars=0,                    # Maximum number of characters to display in widget.
+ #       mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+ #           "Button1": lazy.group['scratchpad'].dropdown_toggle('battery'),
+ #           "Button3": lazy.group['scratchpad'].dropdown_toggle('battery'),
+ #       },
+ #       notification_timeout=10,        # Time in seconds to display notification. 0 for no expiry.
+ #       notify_below=None,              # Send a notification below this battery level.
+ #       padding=None,                   # Padding. Calculated if None.
+ #       show_short_text=True,           # Show "Full" or "Empty" rather than formated text
+ #       unknown_char='?',               # Character to indicate the battery status is unknown
+ #       update_interval=1,              # Seconds between status updates
+ #   ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=temperature_icon_path, # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=0,                     # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('radeontop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'radeontop'"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+    
+    widget.ThermalSensor(
+        background=colors['grey'][1],   # Widget background color
+        fmt='{}',                       # How to format the text
+        font='cascadia code',           # Default font
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#000000',           # Foreground colour
+        foreground_alert='#ff0000',     # Foreground colour alert
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        metric=True,                    # True to use metric/C, False to use imperial/F
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('radeontop'),
+            "Button3": lazy.spawn(f"{terminal} -e 'radeontop'"),
+        },
+        padding=None,                   # Padding. Calculated if None.
+        show_tag=False,                 # Show tag sensor
+        tag_sensor="junction",          # Tag of the temperature sensor. For example: "temp1" or "Core 0"
+        threshold=70,                   # If the current temperature value is above, then change to foreground_alert colour
+        update_interval=1,              # Update interval in seconds
+    ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors['grey'][1],   # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['black'][1],  # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    widget.Spacer(
+        length=int(5*scale_w),                       # Length of the spacer
+        background=colors['black'][1],  # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.Image(
+        background=colors['black'][1],  # Widget background color
+        filename=clock_icon_path,       # Image filename. Can contain '~'
+        margin=int(3*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={   
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('khal'),
+            "Button3": lazy.spawn(f"{terminal} -e khal interactive"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Clock(
+        background=colors['black'][1],  # Widget background color
+        fmt='{}',                       # How to format the text
+        font='JetBrainsMono Nerd Font', # Text font.
+        fontshadow=None,                # font shadow color, default is None(no shadow)
+        fontsize=int(16*scale_h),                    # Font size. Calculated if None.
+        foreground='#ffffff',           # Foreground colour
+        format="%Y-%m-%d %a %I:%M %p",# A Python datetime format string
+        markup=True,                    # Whether or not to use pango markup
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={   
+            "Button1": lazy.group['scratchpad'].dropdown_toggle('khal'),
+            "Button3": lazy.spawn(f"{terminal} -e khal interactive"),
+        },
+        padding=None,                   # Padding. Calculated if None.
+        timezone=None,                  # The timezone to use for this clock, either as string if pytz or dateutil is installed (e.g. "US/Central" or anything in /usr/share/zoneinfo), or as tzinfo (e.g. datetime.timezone.utc). None means the system local timezone and is the default.
+        update_interval=1.0,            # Update interval for the clock
+    ),
+
+    widget.TextBox(
+        text="",                       # Text to be displayed.
+        # width=None,                     # Width of the textbox.
+        background=colors['black'][1],  # Widget background color.
+        fmt='{}',                       # How to format the text.
+        font='meslolgs',                # Text font.
+        fontshadow=None,                # Font shadow color, default is None(no shadow).
+        fontsize=int(24*scale_h),                    # Font pixel size. Calculated if None.
+        foreground=colors['grey'][1],   # Foreground colour.
+        markup=True,                    # Whether or not to use pango markup.
+        max_chars=0,                    # Maximum number of characters to display in widget.
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+        padding=0,                      # Padding left and right. Calculated if None.
+    ),
+
+    # widget.QuickExit(
+    #     # widget=None,                    # Widget width
+    #     background=colors['grey'][1],   # Widget background color
+    #     countdown_format='{}',          # This text is showed when counting down.
+    #     countdown_start=10,             # Time to accept the second pushing.
+    #     default_text='',               # A text displayed as a button
+    #     fmt='{}',                       # How to format the text
+    #     font='JetBrainsMono Nerd Font', # Text font.
+    #     fontshadow=None,                # font shadow color, default is None(no shadow)
+    #     fontsize=16,                    # Font size. Calculated if None.
+    #     foreground='#000000',           # Foreground colour
+    #     markup=True,                    # Whether or not to use pango markup
+    #     max_chars=0,                    # Maximum number of characters to display in widget.
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=None,                   # Padding. Calculated if None.
+    #     timer_interval=1,               # A countdown interval.
+    # ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=logout_icon_path,      # Image filename. Can contain '~'
+        margin=int(4*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(logout_prompt),
+            "Button3": lazy.spawn("i3lock-fancy"),
+        },
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Spacer(
+        length=int(3*scale_w),                       # Length of the spacer
+        background=colors['grey'][1],   # Widget background color
+        mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    widget.Image(
+        background=colors['grey'][1],   # Widget background color
+        filename=poweroff_icon_path,    # Image filename. Can contain '~'
+        margin=int(4*scale_w),                       # Margin inside the box
+        margin_x=None,                  # X Margin. Overrides 'margin' if set
+        margin_y=None,                  # Y Margin. Overrides 'margin' if set
+        mouse_callbacks={               # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+            "Button1": lazy.spawn(poweroff_prompt),
+            "Button3": lazy.spawn(suspend_prompt),
+        },             
+        rotate=0.0,                     # rotate the image in degrees counter-clockwise
+        scale=True,                     # Enable/Disable image scaling
+    ),
+
+    widget.Spacer(
+       length=int(5*scale_w),                       # Length of the spacer
+       background=colors['grey'][1],   # Widget background color
+       mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    ),
+
+    # widget.TextBox(
+    #     text="",                       # Text to be displayed.
+    #     # width=None,                     # Width of the textbox.
+    #     background=None,                # Widget background color.
+    #     fmt='{}',                       # How to format the text.
+    #     font='meslolgs',                # Text font.
+    #     fontshadow=None,                # Font shadow color, default is None(no shadow).
+    #     fontsize=24,                    # Font pixel size. Calculated if None.
+    #     foreground=colors['purple'][1], # Foreground colour.
+    #     markup=True,                    # Whether or not to use pango markup.
+    #     max_chars=0,                    # Maximum number of characters to display in widget.
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=0,                      # Padding left and right. Calculated if None.
+    # ),
+
+    # widget.TextBox(
+    #     text="  ",                       # Text to be displayed.
+    #     # width=None,                     # Width of the textbox.
+    #     background=None,                # Widget background color.
+    #     fmt='{}',                       # How to format the text.
+    #     font='meslolgs',                # Text font.
+    #     fontshadow=None,                # Font shadow color, default is None(no shadow).
+    #     fontsize=24,                    # Font pixel size. Calculated if None.
+    #     foreground=None,                # Foreground colour.
+    #     markup=True,                    # Whether or not to use pango markup.
+    #     max_chars=0,                    # Maximum number of characters to display in widget.
+    #     mouse_callbacks={},             # Dict of mouse button press callback functions. Acceps functions and lazy calls.
+    #     padding=0,                      # Padding left and right. Calculated if None.
+    # ),
+]
+
+my_bar = bar.Bar(
+    widgets=widget_list,            # A list of widget objects.
+    size=int(24*scale_h),                # The "thickness" of the bar, i.e. the height of a horizontal bar, or the width of a vertical bar.
+    background='#00000000',         # Background colour.
+    border_color='#000000',         # Border colour as str or list of str [N E S W].
+    border_width=0,                 # Width of border as int of list of ints [N E S W].
+    margin=0,                       # Space around bar as int or list of ints [N E S W].
+    padding=0,
+    opacity=1,                      # Bar window opacity.
+)
+
+screeen_list = [
+    Screen(top=my_bar),
+]
+
+screens = screeen_list
+
+
+
+# ------------------------------------------------------
+# ------------------- Mouse Bindings -------------------
+# ------------------------------------------------------
+# Drag floating layouts.
+mouse = [
+    Drag([mod], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
+    Drag([mod], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size()),
+    Click([mod], "Button2", lazy.window.bring_to_front()),
+]
+
+
+
+# ------------------------------------------------------
+# ----------------------- Hooks ------------------------
+# ------------------------------------------------------
+
+@hook.subscribe.startup_once
+def start_once():
+    subprocess.call(autostart)
+
+# ------------------------------------------------------
+# ------------------------ Misc ------------------------
+# ------------------------------------------------------
+
+dgroups_app_rules = []  # type: list
+follow_mouse_focus = True
+bring_front_click = False
+cursor_warp = False
+floating_layout = layout.Floating(
+    border_focus=colors["grey"][1], # Border colour(s) for the focused window.
+    border_normal=colors['black'][1],        # Border colour(s) for un-focused windows.
+    border_width=4,                 # Border width.
+    fullscreen_border_width=0,      # Border width for fullscreen.
+    max_border_width=0,             # Border width for maximize.
+    float_rules=[
+        # Run the utility of `xprop` to see the wm class and name of an X client.
+        *layout.Floating.default_float_rules,
+        Match(wm_class="confirmreset"),  # gitk
+        Match(wm_class="makebranch"),  # gitk
+        Match(wm_class="maketag"),  # gitk
+        Match(wm_class="ssh-askpass"),  # ssh-askpass
+        Match(title="branchdialog"),  # gitk
+        Match(title="pinentry"),  # GPG key password entry
+    ]
+)
+auto_fullscreen = False
+focus_on_window_activation = "smart"
+reconfigure_screens = True
+
+# If things like steam games want to auto-minimize themselves when losing
+# focus, should we respect this or not?
+auto_minimize = True
+
+# When using the Wayland backend, this can be used to configure input devices.
+wl_input_rules = None
+
+# XXX: Gasp! We're lying here. In fact, nobody really uses or cares about this
+# string besides java UI toolkits; you can see several discussions on the
+# mailing lists, GitHub issues, and other WM documentation that suggest setting
+# this string if your java app doesn't work correctly. We may as well just lie
+# and say that we're a working one by default.
+#
+# We choose LG3D to maximize irony: it is a 3D non-reparenting WM written in
+# java that happens to be on java's whitelist.
+# wmname = "LG3D"
+wmname = "qtile"
